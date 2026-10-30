@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V1.9.2 - Acompanha Preço (Interface atualizada para Nota Paraná) -->
+<!-- V2.0 - Acompanha Preço (Comparador de preços da Nota Paraná com o Carrinho) -->
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -29,7 +29,7 @@
                 <h1 class="text-xl font-bold tracking-wide">Acompanha Preço</h1>
             </div>
             <div class="text-xs bg-blue-700 px-3 py-1.5 rounded-full font-medium">
-                v1.9.2 - GitHub Pages
+                v2.0 - GitHub Pages
             </div>
         </div>
     </header>
@@ -116,7 +116,6 @@
                 </ul>
             </div>
 
-            <!-- BOTÃO FINALIZAR COMPRA -->
             <button onclick="finalizePurchase()" class="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-base hover:bg-emerald-700 transition shadow-md flex items-center justify-center gap-2">
                 <i class="fa-solid fa-check-double"></i> Finalizar Compra
             </button>
@@ -183,7 +182,7 @@
             </div>
         </section>
 
-        <!-- SEÇÃO LEITOR DE QR CODE DO NOTA PARANÁ -->
+        <!-- SEÇÃO COMPARADOR NOTA PARANÁ -->
         <section id="sec-nota" class="space-y-4 hidden">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-3">
                 <div class="text-center">
@@ -204,14 +203,35 @@
                     </button>
                 </div>
 
-                <div id="qr-result-card" class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 hidden space-y-3">
-                    <div class="text-xs font-bold text-indigo-800 uppercase flex items-center gap-1.5">
-                        <i class="fa-solid fa-file-invoice-dollar"></i> Link da Nota Paraná Capturado
+                <div id="qr-result-card" class="bg-white border border-indigo-200 rounded-xl p-4 hidden space-y-3 shadow-md">
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <span class="text-xs font-bold text-indigo-800 uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-scale-balanced"></i> Comparativo de Preços
+                        </span>
+                        <a id="qr-open-link" href="#" target="_blank" class="text-[11px] text-indigo-600 hover:underline font-bold">
+                            Abrir Portal SEFAZ <i class="fa-solid fa-up-right-from-square text-[9px]"></i>
+                        </a>
                     </div>
-                    <p id="qr-text-display" class="text-xs text-gray-600 break-all bg-white p-2 rounded border font-mono">--</p>
-                    <a id="qr-open-link" href="#" target="_blank" class="block w-full text-center bg-indigo-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition">
-                        Abrir Nota no Portal do Receita PR
-                    </a>
+
+                    <!-- Resumo Geral do Confronto -->
+                    <div id="comparison-summary" class="grid grid-cols-2 gap-2 text-center text-xs font-bold pt-1">
+                        <div class="bg-gray-50 p-2 rounded border">
+                            <span class="text-gray-500 block text-[10px] uppercase">Carrinho (Prateleira)</span>
+                            <span id="comp-cart-total" class="text-gray-800 text-sm">R$ 0,00</span>
+                        </div>
+                        <div class="bg-gray-50 p-2 rounded border">
+                            <span class="text-gray-500 block text-[10px] uppercase">Divergência Total</span>
+                            <span id="comp-diff-total" class="text-sm">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <!-- Lista de comparação de itens -->
+                    <div class="space-y-2">
+                        <h4 class="text-xs font-bold text-gray-700">Conferência dos Itens:</h4>
+                        <ul id="comparison-list" class="divide-y divide-gray-100 text-xs">
+                            <li class="py-2 text-center text-gray-400">Nenhuma nota lida ainda.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </section>
@@ -297,7 +317,7 @@
                 return;
             }
 
-            cart.push({ id: Date.now(), name, price, qty });
+            cart.push({ id: Date.now(), name, price, qty, code: '' });
             document.getElementById('prod-name').value = '';
             document.getElementById('prod-price').value = '';
             renderCart();
@@ -464,7 +484,7 @@
                 return;
             }
 
-            cart.push({ id: Date.now(), name, price, qty });
+            cart.push({ id: Date.now(), name, price, qty, code: pendingScannedCode || '' });
             renderCart();
 
             if (sheetsScriptUrl && pendingScannedCode) {
@@ -492,7 +512,7 @@
             startCamera();
         }
 
-        // --- LEITOR DE QR CODE DO NOTA PARANÁ ---
+        // --- COMPARADOR DE PREÇOS NOTA PARANÁ ---
         async function startQrCamera() {
             document.getElementById('btn-start-qr').classList.add('hidden');
             document.getElementById('btn-stop-qr').classList.remove('hidden');
@@ -525,8 +545,98 @@
         async function onQrScanSuccess(decodedText) {
             await stopQrCamera();
             document.getElementById('qr-result-card').classList.remove('hidden');
-            document.getElementById('qr-text-display').innerText = decodedText;
             document.getElementById('qr-open-link').href = decodedText;
+
+            // Faz a requisição ao GAS backend para processar a comparação do QR Code com o Carrinho
+            if (sheetsScriptUrl) {
+                try {
+                    const res = await fetch(sheetsScriptUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'compare_nfc',
+                            qrUrl: decodedText,
+                            cart: cart
+                        })
+                    });
+                    const result = await res.json();
+                    renderComparisonResults(result);
+                    return;
+                } catch (e) {
+                    console.log('Consultando modo local offline...', e);
+                }
+            }
+
+            // Fallback de exibição caso seja acessado em modo local/sem backend ativo
+            renderLocalComparison();
+        }
+
+        function renderComparisonResults(data) {
+            const listEl = document.getElementById('comparison-list');
+            const cartTotalEl = document.getElementById('comp-cart-total');
+            const diffTotalEl = document.getElementById('comp-diff-total');
+
+            const cartTotal = cart.reduce((a, b) => a + (b.price * b.qty), 0);
+            cartTotalEl.innerText = `R$ ${cartTotal.toFixed(2).replace('.', ',')}`;
+
+            if (!data || !data.items || data.items.length === 0) {
+                renderLocalComparison();
+                return;
+            }
+
+            let diffSum = 0;
+            listEl.innerHTML = data.items.map(item => {
+                const diff = item.nfcPrice - item.cartPrice;
+                diffSum += diff;
+                let statusBadge = '';
+                if (Math.abs(diff) < 0.01) {
+                    statusBadge = '<span class="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded"><i class="fa-solid fa-check"></i> Correto</span>';
+                } else if (diff > 0) {
+                    statusBadge = `<span class="text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded"><i class="fa-solid fa-arrow-up"></i> +R$ ${diff.toFixed(2).replace('.', ',')}</span>`;
+                } else {
+                    statusBadge = `<span class="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded"><i class="fa-solid fa-arrow-down"></i> -R$ ${Math.abs(diff).toFixed(2).replace('.', ',')}</span>`;
+                }
+
+                return `
+                    <li class="py-2.5 flex justify-between items-center">
+                        <div>
+                            <div class="font-bold text-gray-800">${item.name}</div>
+                            <div class="text-[10px] text-gray-500">Prateleira: R$ ${item.cartPrice.toFixed(2).replace('.', ',')} | Nota: R$ ${item.nfcPrice.toFixed(2).replace('.', ',')}</div>
+                        </div>
+                        <div>${statusBadge}</div>
+                    </li>
+                `;
+            }).join('');
+
+            diffTotalEl.innerText = `R$ ${diffSum.toFixed(2).replace('.', ',')}`;
+            diffTotalEl.className = diffSum > 0 ? "text-red-600 text-sm" : (diffSum < 0 ? "text-emerald-600 text-sm" : "text-gray-800 text-sm");
+        }
+
+        function renderLocalComparison() {
+            const listEl = document.getElementById('comparison-list');
+            const cartTotalEl = document.getElementById('comp-cart-total');
+            const diffTotalEl = document.getElementById('comp-diff-total');
+
+            const cartTotal = cart.reduce((a, b) => a + (b.price * b.qty), 0);
+            cartTotalEl.innerText = `R$ ${cartTotal.toFixed(2).replace('.', ',')}`;
+            diffTotalEl.innerText = `R$ 0,00`;
+
+            if (cart.length === 0) {
+                listEl.innerHTML = '<li class="py-2 text-center text-gray-400">Carrinho vazio para comparar.</li>';
+                return;
+            }
+
+            listEl.innerHTML = cart.map(item => `
+                <li class="py-2.5 flex justify-between items-center">
+                    <div>
+                        <div class="font-bold text-gray-800">${item.name}</div>
+                        <div class="text-[10px] text-gray-500">Registrado na Prateleira: R$ ${item.price.toFixed(2).replace('.', ',')}</div>
+                    </div>
+                    <div>
+                        <span class="text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded text-[10px]">Aguardando Nota</span>
+                    </div>
+                </li>
+            `).join('');
         }
 
         renderCart();
