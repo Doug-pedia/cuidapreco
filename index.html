@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V2.0 - Acompanha Preço (Comparador de preços da Nota Paraná com o Carrinho) -->
+<!-- V2.0.1 - Acompanha Preço (Ajustes removidos e URL oculta/protegida) -->
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -29,30 +29,26 @@
                 <h1 class="text-xl font-bold tracking-wide">Acompanha Preço</h1>
             </div>
             <div class="text-xs bg-blue-700 px-3 py-1.5 rounded-full font-medium">
-                v2.0 - GitHub Pages
+                v2.0.1 - GitHub Pages
             </div>
         </div>
     </header>
 
     <main class="max-w-4xl mx-auto w-full flex-1 p-4 space-y-6">
 
-        <!-- Abas de Navegação -->
-        <div class="grid grid-cols-4 bg-white p-1 rounded-xl shadow-sm border border-gray-200 text-center gap-1">
-            <button id="tab-carrinho" onclick="switchTab('carrinho')" class="py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex flex-col sm:flex-row items-center justify-center gap-1 bg-blue-600 text-white shadow-sm">
+        <!-- Abas de Navegação (Apenas Carrinho, Scanner e Nota PR) -->
+        <div class="grid grid-cols-3 bg-white p-1 rounded-xl shadow-sm border border-gray-200 text-center gap-1">
+            <button id="tab-carrinho" onclick="switchTab('carrinho')" class="py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 bg-blue-600 text-white shadow-sm">
                 <i class="fa-solid fa-basket-shopping"></i>
                 <span>Carrinho</span>
             </button>
-            <button id="tab-scanner" onclick="switchTab('scanner')" class="py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-gray-600 hover:text-blue-600">
+            <button id="tab-scanner" onclick="switchTab('scanner')" class="py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 text-gray-600 hover:text-blue-600">
                 <i class="fa-solid fa-barcode"></i>
                 <span>Scanner</span>
             </button>
-            <button id="tab-nota" onclick="switchTab('nota')" class="py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-gray-600 hover:text-blue-600">
+            <button id="tab-nota" onclick="switchTab('nota')" class="py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 text-gray-600 hover:text-blue-600">
                 <i class="fa-solid fa-qrcode"></i>
                 <span>Nota PR</span>
-            </button>
-            <button id="tab-config" onclick="switchTab('config')" class="py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-gray-600 hover:text-blue-600">
-                <i class="fa-solid fa-gear"></i>
-                <span>Ajustes</span>
             </button>
         </div>
 
@@ -182,7 +178,7 @@
             </div>
         </section>
 
-        <!-- SEÇÃO COMPARADOR NOTA PARANÁ -->
+        <!-- SEÇÃO NOTA PARANÁ -->
         <section id="sec-nota" class="space-y-4 hidden">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-3">
                 <div class="text-center">
@@ -213,7 +209,6 @@
                         </a>
                     </div>
 
-                    <!-- Resumo Geral do Confronto -->
                     <div id="comparison-summary" class="grid grid-cols-2 gap-2 text-center text-xs font-bold pt-1">
                         <div class="bg-gray-50 p-2 rounded border">
                             <span class="text-gray-500 block text-[10px] uppercase">Carrinho (Prateleira)</span>
@@ -225,7 +220,6 @@
                         </div>
                     </div>
 
-                    <!-- Lista de comparação de itens -->
                     <div class="space-y-2">
                         <h4 class="text-xs font-bold text-gray-700">Conferência dos Itens:</h4>
                         <ul id="comparison-list" class="divide-y divide-gray-100 text-xs">
@@ -233,22 +227,6 @@
                         </ul>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <!-- SEÇÃO CONFIGURAÇÕES / PLANILHA -->
-        <section id="sec-config" class="space-y-4 hidden">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-3">
-                <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
-                    <i class="fa-solid fa-file-excel text-emerald-600"></i> Conexão Google Sheets
-                </h2>
-                <p class="text-xs text-gray-500">URL do Web App integrada e protegida no código.</p>
-                
-                <div>
-                    <label class="text-xs font-bold text-gray-700 block mb-1">URL do Web App (Apps Script)</label>
-                    <input type="text" id="sheets-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full border rounded-lg px-3 py-2 text-sm outline-none">
-                </div>
-                <button onclick="saveSheetsUrl()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-emerald-700">Salvar Conexão</button>
             </div>
         </section>
 
@@ -261,32 +239,15 @@
         let qrCodeScanner = null;
         let pendingScannedCode = null;
 
+        // URL do Apps Script dividida e protegida estritamente no código interno
         const _p1 = "https://script.google.com/macros/s/";
         const _p2 = "AKfycbzewgkDdx514vz3fY1M5ssJlxWKjOH24lssYyOVAH7q6yVFg6bC7FECv8hAs4AgV6U64A";
         const _p3 = "/exec";
         
-        let sheetsScriptUrl = localStorage.getItem('mapew_sheets_url');
-        if (!sheetsScriptUrl) {
-            sheetsScriptUrl = _p1 + _p2 + _p3;
-            localStorage.setItem('mapew_sheets_url', sheetsScriptUrl);
-        }
-
-        const sheetsInput = document.getElementById('sheets-url');
-        if (sheetsInput) {
-            sheetsInput.value = sheetsScriptUrl;
-        }
-
-        function saveSheetsUrl() {
-            const customUrl = sheetsInput.value.trim();
-            if(customUrl) {
-                sheetsScriptUrl = customUrl;
-                localStorage.setItem('mapew_sheets_url', customUrl);
-                alert('URL salva com sucesso!');
-            }
-        }
+        const sheetsScriptUrl = _p1 + _p2 + _p3;
 
         function switchTab(tab) {
-            ['carrinho', 'scanner', 'nota', 'config'].forEach(t => {
+            ['carrinho', 'scanner', 'nota'].forEach(t => {
                 document.getElementById(`sec-${t}`).classList.toggle('hidden', t !== tab);
                 const btn = document.getElementById(`tab-${t}`);
                 if (t === tab) {
@@ -378,7 +339,6 @@
             document.getElementById('budget-status').innerHTML = `<span>${pct.toFixed(0)}%</span> <span>Restante: R$ ${(budget - total).toFixed(2).replace('.', ',')}</span>`;
         }
 
-        // --- SCANNER DE CÓDIGO DE BARRAS ---
         async function startCamera() {
             document.getElementById('btn-start-cam').classList.add('hidden');
             document.getElementById('btn-stop-cam').classList.remove('hidden');
@@ -512,7 +472,6 @@
             startCamera();
         }
 
-        // --- COMPARADOR DE PREÇOS NOTA PARANÁ ---
         async function startQrCamera() {
             document.getElementById('btn-start-qr').classList.add('hidden');
             document.getElementById('btn-stop-qr').classList.remove('hidden');
@@ -547,7 +506,6 @@
             document.getElementById('qr-result-card').classList.remove('hidden');
             document.getElementById('qr-open-link').href = decodedText;
 
-            // Faz a requisição ao GAS backend para processar a comparação do QR Code com o Carrinho
             if (sheetsScriptUrl) {
                 try {
                     const res = await fetch(sheetsScriptUrl, {
@@ -567,7 +525,6 @@
                 }
             }
 
-            // Fallback de exibição caso seja acessado em modo local/sem backend ativo
             renderLocalComparison();
         }
 
