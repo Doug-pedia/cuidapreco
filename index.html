@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V1.7.5 - Acompanha Preço (Correção definitiva de inicialização da câmera) -->
+<!-- V1.8 - Acompanha Preço (Card de leitura limpo, minimalista e direto) -->
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -12,7 +12,7 @@
         #reader video {
             object-fit: cover !important;
             border-radius: 0.75rem;
-            max-height: 200px !important;
+            max-height: 180px !important;
         }
         #reader {
             width: 100% !important;
@@ -29,7 +29,7 @@
                 <h1 class="text-xl font-bold tracking-wide">Acompanha Preço</h1>
             </div>
             <div class="text-xs bg-blue-700 px-3 py-1.5 rounded-full font-medium">
-                v1.7.5 - GitHub Pages
+                v1.8 - GitHub Pages
             </div>
         </div>
     </header>
@@ -112,13 +112,13 @@
         </section>
 
         <section id="sec-scanner" class="space-y-4 hidden">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-4">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-3">
                 <div class="text-center">
                     <h2 class="text-base font-bold text-gray-800">Scanner de Código de Barras</h2>
-                    <p class="text-xs text-gray-500">Aponte a câmera para o código de barras.</p>
+                    <p class="text-[11px] text-gray-500">Aponte para o código do produto.</p>
                 </div>
 
-                <div class="relative max-w-xs mx-auto overflow-hidden rounded-xl border-2 border-blue-500 bg-black min-h-[180px] max-h-[200px] flex items-center justify-center">
+                <div class="relative max-w-xs mx-auto overflow-hidden rounded-xl border-2 border-blue-500 bg-black min-h-[160px] max-h-[180px] flex items-center justify-center">
                     <div id="reader" class="w-full"></div>
                 </div>
 
@@ -131,30 +131,41 @@
                     </button>
                 </div>
 
-                <div id="scan-result-card" class="bg-emerald-50 border border-emerald-300 rounded-xl p-4 hidden space-y-3 shadow-md scroll-mt-6">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-xs text-emerald-800 font-bold uppercase">
-                            <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
-                            <span>Produto identificado!</span>
-                        </div>
-                        <span id="scan-result-code" class="text-[10px] text-gray-500 font-mono bg-emerald-100 px-2 py-0.5 rounded">--</span>
+                <!-- CARD DE LEITURA MINIMALISTA (ESTILO SOLICITADO) -->
+                <div id="scan-result-card" class="bg-white border-2 border-emerald-500 rounded-xl p-4 hidden space-y-3 shadow-lg scroll-mt-4">
+                    <div class="flex items-center justify-between border-b pb-2">
+                        <span class="text-xs font-bold text-emerald-700 uppercase tracking-wide">Produto Lido</span>
+                        <span id="scan-result-code" class="text-[10px] text-gray-400 font-mono">--</span>
                     </div>
                     
-                    <div id="scan-price-form" class="space-y-2 pt-1 border-t border-emerald-200">
+                    <div class="space-y-3">
                         <div>
-                            <label class="text-[11px] font-bold text-gray-600 block mb-0.5">Nome do Produto</label>
-                            <input type="text" id="scanned-name-input" placeholder="Nome do produto" class="w-full border rounded-lg px-3 py-2 text-sm outline-none bg-white">
+                            <label class="text-[11px] font-bold text-gray-600 block mb-1">Nome do Produto</label>
+                            <input type="text" id="scanned-name-input" placeholder="Ex: Arroz 5kg" class="w-full border rounded-lg px-3 py-2 text-sm outline-none bg-gray-50 focus:bg-white font-medium">
                         </div>
-                        <div class="flex gap-2 items-center">
-                            <div class="flex-1">
-                                <label class="text-[11px] font-bold text-gray-600 block mb-0.5">Preço (R$)</label>
-                                <input type="number" step="0.01" id="scanned-price-input" placeholder="0,00" class="w-full border rounded-lg px-3 py-2 text-sm outline-none bg-white font-bold text-gray-800">
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[11px] font-bold text-gray-600 block mb-1">Preço (R$)</label>
+                                <input type="number" step="0.01" id="scanned-price-input" placeholder="0,00" class="w-full border rounded-lg px-3 py-2 text-sm outline-none bg-gray-50 focus:bg-white font-bold text-gray-800">
                             </div>
-                            <div class="self-end">
-                                <button onclick="confirmScannedProduct()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-700 transition shadow">
-                                    Adicionar ao Carrinho
-                                </button>
+                            <div>
+                                <label class="text-[11px] font-bold text-gray-600 block mb-1">Quantidade</label>
+                                <div class="flex items-center border rounded-lg overflow-hidden bg-gray-50">
+                                    <button onclick="adjustScannedQty(-1)" class="px-3 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 transition text-sm font-bold">-</button>
+                                    <input type="number" id="scanned-qty-input" value="1" min="1" class="w-full text-center text-sm outline-none bg-transparent font-bold">
+                                    <button onclick="adjustScannedQty(1)" class="px-3 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 transition text-sm font-bold">+</button>
+                                </div>
                             </div>
+                        </div>
+
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="cancelScan()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg text-xs font-bold hover:bg-gray-300 transition">
+                                Cancelar
+                            </button>
+                            <button onclick="confirmScannedProduct()" class="flex-2 bg-emerald-600 text-white py-2 px-4 rounded-lg text-xs font-bold hover:bg-emerald-700 transition shadow flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-check"></i> Adicionar
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -350,9 +361,11 @@
 
             const nameInput = document.getElementById('scanned-name-input');
             const priceInput = document.getElementById('scanned-price-input');
+            const qtyInput = document.getElementById('scanned-qty-input');
 
             nameInput.value = 'Buscando...';
             priceInput.value = '';
+            qtyInput.value = '1';
 
             setTimeout(() => {
                 resultCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -362,6 +375,7 @@
                 const extractedPrice = (parseInt(decodedText.substring(7, 12)) / 100).toFixed(2);
                 nameInput.value = "Produto Peso/Balança";
                 priceInput.value = extractedPrice;
+                priceInput.focus();
                 return;
             }
 
@@ -372,7 +386,11 @@
                     if (data && data.found) {
                         nameInput.value = data.name || '';
                         priceInput.value = data.price || '';
-                        if (!data.price) priceInput.focus();
+                        if (!data.price) {
+                            priceInput.focus();
+                        } else {
+                            nameInput.focus();
+                        }
                         return;
                     }
                 } catch (e) {
@@ -384,16 +402,25 @@
             nameInput.focus();
         }
 
+        function adjustScannedQty(amount) {
+            const qtyInput = document.getElementById('scanned-qty-input');
+            let current = parseInt(qtyInput.value) || 1;
+            current += amount;
+            if (current < 1) current = 1;
+            qtyInput.value = current;
+        }
+
         async function confirmScannedProduct() {
             const name = document.getElementById('scanned-name-input').value.trim();
             const price = parseFloat(document.getElementById('scanned-price-input').value);
+            const qty = parseInt(document.getElementById('scanned-qty-input').value) || 1;
 
             if (!name || isNaN(price) || price <= 0) {
                 alert('Informe nome e preço válidos.');
                 return;
             }
 
-            cart.push({ id: Date.now(), name, price, qty: 1 });
+            cart.push({ id: Date.now(), name, price, qty });
             renderCart();
 
             if (sheetsScriptUrl && pendingScannedCode) {
@@ -408,6 +435,12 @@
             document.getElementById('scan-result-card').classList.add('hidden');
             pendingScannedCode = null;
             switchTab('carrinho');
+        }
+
+        function cancelScan() {
+            document.getElementById('scan-result-card').classList.add('hidden');
+            pendingScannedCode = null;
+            startCamera();
         }
 
         function quickScanForAdd() {
