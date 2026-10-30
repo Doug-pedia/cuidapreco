@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V2.1.0 claude - Acompanha Preço (conferência honesta da nota, dados salvos no aparelho, scanner mais rápido) -->
+<!-- V2.1.0 - Acompanha Preço (conferência honesta da nota, dados salvos no aparelho, scanner mais rápido) -->
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -526,7 +526,9 @@
             if (data && data.found) {
                 nameInput.value = data.name || '';
                 priceInput.value = data.price ? String(data.price).replace('.', ',') : '';
-                $('scan-status').textContent = 'Produto encontrado na planilha.';
+                $('scan-status').textContent = data.source === 'openfoodfacts'
+                    ? 'Nome encontrado no Open Food Facts. Informe o preço.'
+                    : 'Produto encontrado na planilha.';
                 (data.price ? nameInput : priceInput).focus();
             } else {
                 $('scan-status').textContent = data
@@ -731,7 +733,7 @@
                     </div>
                     <div class="flex justify-between items-center gap-2 text-[11px] text-gray-500">
                         <span>Prateleira: ${r.cartPrice == null ? '—' : brl(r.cartPrice)}</span>
-                        ${editable
+                        ${(editable || r.nfcPrice == null)
                             ? `<label class="flex items-center gap-1">Na nota: R$
                                  <input type="text" inputmode="decimal" placeholder="0,00" aria-label="Preço na nota de ${esc(r.name)}"
                                         oninput="onNotaPrice(${idx}, this.value)"
