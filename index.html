@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V1.8 - Acompanha Preço (Card de leitura limpo, minimalista e direto) -->
+<!-- V1.9.2 - Acompanha Preço (Interface atualizada para Nota Paraná) -->
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -9,12 +9,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        #reader video {
+        #reader video, #qr-reader video {
             object-fit: cover !important;
             border-radius: 0.75rem;
             max-height: 180px !important;
         }
-        #reader {
+        #reader, #qr-reader {
             width: 100% !important;
             border: none !important;
         }
@@ -29,28 +29,34 @@
                 <h1 class="text-xl font-bold tracking-wide">Acompanha Preço</h1>
             </div>
             <div class="text-xs bg-blue-700 px-3 py-1.5 rounded-full font-medium">
-                v1.8 - GitHub Pages
+                v1.9.2 - GitHub Pages
             </div>
         </div>
     </header>
 
     <main class="max-w-4xl mx-auto w-full flex-1 p-4 space-y-6">
 
-        <div class="flex bg-white p-1 rounded-xl shadow-sm border border-gray-200">
-            <button id="tab-carrinho" onclick="switchTab('carrinho')" class="flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 bg-blue-600 text-white shadow-sm">
+        <!-- Abas de Navegação -->
+        <div class="grid grid-cols-4 bg-white p-1 rounded-xl shadow-sm border border-gray-200 text-center gap-1">
+            <button id="tab-carrinho" onclick="switchTab('carrinho')" class="py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex flex-col sm:flex-row items-center justify-center gap-1 bg-blue-600 text-white shadow-sm">
                 <i class="fa-solid fa-basket-shopping"></i>
                 <span>Carrinho</span>
             </button>
-            <button id="tab-scanner" onclick="switchTab('scanner')" class="flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600">
+            <button id="tab-scanner" onclick="switchTab('scanner')" class="py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-gray-600 hover:text-blue-600">
                 <i class="fa-solid fa-barcode"></i>
                 <span>Scanner</span>
             </button>
-            <button id="tab-config" onclick="switchTab('config')" class="flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600">
+            <button id="tab-nota" onclick="switchTab('nota')" class="py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-gray-600 hover:text-blue-600">
+                <i class="fa-solid fa-qrcode"></i>
+                <span>Nota PR</span>
+            </button>
+            <button id="tab-config" onclick="switchTab('config')" class="py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-gray-600 hover:text-blue-600">
                 <i class="fa-solid fa-gear"></i>
-                <span>Planilha</span>
+                <span>Ajustes</span>
             </button>
         </div>
 
+        <!-- SEÇÃO CARRINHO -->
         <section id="sec-carrinho" class="space-y-4">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-3">
                 <div class="flex justify-between items-center">
@@ -109,8 +115,14 @@
                     <li class="p-6 text-center text-gray-400 text-sm">Carrinho vazio.</li>
                 </ul>
             </div>
+
+            <!-- BOTÃO FINALIZAR COMPRA -->
+            <button onclick="finalizePurchase()" class="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-base hover:bg-emerald-700 transition shadow-md flex items-center justify-center gap-2">
+                <i class="fa-solid fa-check-double"></i> Finalizar Compra
+            </button>
         </section>
 
+        <!-- SEÇÃO SCANNER DE CÓDIGO DE BARRAS -->
         <section id="sec-scanner" class="space-y-4 hidden">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-3">
                 <div class="text-center">
@@ -131,7 +143,6 @@
                     </button>
                 </div>
 
-                <!-- CARD DE LEITURA MINIMALISTA (ESTILO SOLICITADO) -->
                 <div id="scan-result-card" class="bg-white border-2 border-emerald-500 rounded-xl p-4 hidden space-y-3 shadow-lg scroll-mt-4">
                     <div class="flex items-center justify-between border-b pb-2">
                         <span class="text-xs font-bold text-emerald-700 uppercase tracking-wide">Produto Lido</span>
@@ -172,6 +183,40 @@
             </div>
         </section>
 
+        <!-- SEÇÃO LEITOR DE QR CODE DO NOTA PARANÁ -->
+        <section id="sec-nota" class="space-y-4 hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-3">
+                <div class="text-center">
+                    <h2 class="text-base font-bold text-gray-800">Conferir Nota Paraná (QR Code)</h2>
+                    <p class="text-[11px] text-gray-500">Aponte a câmera para o QR Code do cupom NFC-e do Paraná.</p>
+                </div>
+
+                <div class="relative max-w-xs mx-auto overflow-hidden rounded-xl border-2 border-indigo-500 bg-black min-h-[160px] max-h-[180px] flex items-center justify-center">
+                    <div id="qr-reader" class="w-full"></div>
+                </div>
+
+                <div class="flex justify-center gap-3">
+                    <button id="btn-start-qr" onclick="startQrCamera()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow flex items-center gap-2">
+                        <i class="fa-solid fa-qrcode"></i> Ler QR Code da Nota
+                    </button>
+                    <button id="btn-stop-qr" onclick="stopQrCamera()" class="bg-gray-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow hidden flex items-center gap-2">
+                        <i class="fa-solid fa-video-slash"></i> Parar Câmera
+                    </button>
+                </div>
+
+                <div id="qr-result-card" class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 hidden space-y-3">
+                    <div class="text-xs font-bold text-indigo-800 uppercase flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> Link da Nota Paraná Capturado
+                    </div>
+                    <p id="qr-text-display" class="text-xs text-gray-600 break-all bg-white p-2 rounded border font-mono">--</p>
+                    <a id="qr-open-link" href="#" target="_blank" class="block w-full text-center bg-indigo-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition">
+                        Abrir Nota no Portal do Receita PR
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO CONFIGURAÇÕES / PLANILHA -->
         <section id="sec-config" class="space-y-4 hidden">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-3">
                 <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
@@ -193,6 +238,7 @@
         let cart = [];
         let budget = 150.00;
         let html5QrcodeScanner = null;
+        let qrCodeScanner = null;
         let pendingScannedCode = null;
 
         const _p1 = "https://script.google.com/macros/s/";
@@ -220,7 +266,7 @@
         }
 
         function switchTab(tab) {
-            ['carrinho', 'scanner', 'config'].forEach(t => {
+            ['carrinho', 'scanner', 'nota', 'config'].forEach(t => {
                 document.getElementById(`sec-${t}`).classList.toggle('hidden', t !== tab);
                 const btn = document.getElementById(`tab-${t}`);
                 if (t === tab) {
@@ -231,9 +277,8 @@
                     btn.classList.add('text-gray-600');
                 }
             });
-            if (tab !== 'scanner') {
-                stopCamera();
-            }
+            if (tab !== 'scanner') stopCamera();
+            if (tab !== 'nota') stopQrCamera();
         }
 
         function updateBudget() {
@@ -270,6 +315,17 @@
             }
         }
 
+        function finalizePurchase() {
+            if (cart.length === 0) {
+                alert('Seu carrinho está vazio!');
+                return;
+            }
+            const total = cart.reduce((a, b) => a + (b.price * b.qty), 0);
+            alert(`Compra finalizada com sucesso!\nTotal gasto: R$ ${total.toFixed(2).replace('.', ',')}`);
+            cart = [];
+            renderCart();
+        }
+
         function renderCart() {
             const cartList = document.getElementById('cart-list');
             const total = cart.reduce((a, b) => a + (b.price * b.qty), 0);
@@ -302,18 +358,15 @@
             document.getElementById('budget-status').innerHTML = `<span>${pct.toFixed(0)}%</span> <span>Restante: R$ ${(budget - total).toFixed(2).replace('.', ',')}</span>`;
         }
 
+        // --- SCANNER DE CÓDIGO DE BARRAS ---
         async function startCamera() {
-            const startBtn = document.getElementById('btn-start-cam');
-            const stopBtn = document.getElementById('btn-stop-cam');
-
-            startBtn.classList.add('hidden');
-            stopBtn.classList.remove('hidden');
+            document.getElementById('btn-start-cam').classList.add('hidden');
+            document.getElementById('btn-stop-cam').classList.remove('hidden');
 
             try {
                 if (!html5QrcodeScanner) {
                     html5QrcodeScanner = new Html5Qrcode("reader");
                 }
-                
                 const config = {
                     fps: 15,
                     qrbox: { width: 220, height: 120 },
@@ -324,15 +377,10 @@
                         Html5QrcodeSupportedFormats.UPC_A
                     ]
                 };
-
-                await html5QrcodeScanner.start(
-                    { facingMode: "environment" }, 
-                    config, 
-                    onScanSuccess
-                );
+                await html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess);
             } catch (err) {
                 console.error("Erro ao iniciar câmera:", err);
-                alert("Erro ao acessar a câmera. Certifique-se de usar HTTPS e permitir o acesso.");
+                alert("Erro ao acessar a câmera.");
                 stopCamera();
             }
         }
@@ -342,9 +390,7 @@
                 try {
                     await html5QrcodeScanner.stop();
                     await html5QrcodeScanner.clear();
-                } catch (e) {
-                    console.log("Erro ao limpar leitor:", e);
-                }
+                } catch (e) {}
                 html5QrcodeScanner = null;
             }
             document.getElementById('btn-start-cam').classList.remove('hidden');
@@ -393,9 +439,7 @@
                         }
                         return;
                     }
-                } catch (e) {
-                    console.log('Erro ao buscar na planilha/API', e);
-                }
+                } catch (e) {}
             }
 
             nameInput.value = '';
@@ -446,6 +490,43 @@
         function quickScanForAdd() {
             switchTab('scanner');
             startCamera();
+        }
+
+        // --- LEITOR DE QR CODE DO NOTA PARANÁ ---
+        async function startQrCamera() {
+            document.getElementById('btn-start-qr').classList.add('hidden');
+            document.getElementById('btn-stop-qr').classList.remove('hidden');
+
+            try {
+                if (!qrCodeScanner) {
+                    qrCodeScanner = new Html5Qrcode("qr-reader");
+                }
+                const config = { fps: 10, qrbox: { width: 180, height: 180 } };
+                await qrCodeScanner.start({ facingMode: "environment" }, config, onQrScanSuccess);
+            } catch (err) {
+                console.error("Erro ao iniciar câmera de QR:", err);
+                alert("Erro ao acessar a câmera para o QR Code.");
+                stopQrCamera();
+            }
+        }
+
+        async function stopQrCamera() {
+            if (qrCodeScanner) {
+                try {
+                    await qrCodeScanner.stop();
+                    await qrCodeScanner.clear();
+                } catch (e) {}
+                qrCodeScanner = null;
+            }
+            document.getElementById('btn-start-qr').classList.remove('hidden');
+            document.getElementById('btn-stop-qr').classList.add('hidden');
+        }
+
+        async function onQrScanSuccess(decodedText) {
+            await stopQrCamera();
+            document.getElementById('qr-result-card').classList.remove('hidden');
+            document.getElementById('qr-text-display').innerText = decodedText;
+            document.getElementById('qr-open-link').href = decodedText;
         }
 
         renderCart();
