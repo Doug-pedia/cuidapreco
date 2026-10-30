@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acompanha Preço - Compras Inteligentes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        #reader video {
+            object-fit: cover !important;
+            border-radius: 0.75rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col font-sans pb-20 md:pb-0">
+
+    <header class="bg-blue-600 text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-cart-shopping text-2xl text-amber-300"></i>
+                <h1 class="text-xl font-bold tracking-wide">Acompanha Preço</h1>
+            </div>
+            <div class="text-xs bg-blue-700 px-3 py-1.5 rounded-full font-medium">
+                v1.1 - GitHub Pages
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto w-full flex-1 p-4 space-y-6">
+
+        <div class="flex bg-white p-1 rounded-xl shadow-sm border border-gray-200">
+            <button id="tab-carrinho" onclick="switchTab('carrinho')" class="flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 bg-blue-600 text-white shadow-sm">
+                <i class="fa-solid fa-basket-shopping"></i>
+                <span>Carrinho</span>
+            </button>
+            <button id="tab-scanner" onclick="switchTab('scanner')" class="flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600">
+                <i class="fa-solid fa-barcode"></i>
+                <span>Scanner</span>
+            </button>
+            <button id="tab-config" onclick="switchTab('config')" class="flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600">
+                <i class="fa-solid fa-gear"></i>
+                <span>Planilha</span>
+            </button>
+        </div>
+
+        <section id="sec-carrinho" class="space-y-4">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-3">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Total</span>
+                        <div class="text-3xl font-extrabold text-gray-900" id="cart-total-display">R$ 0,00</div>
+                    </div>
+                    <div class="text-right">
+                        <label for="budget-input" class="text-xs text-gray-500 font-semibold uppercase tracking-wider block">Orçamento</label>
+                        <div class="flex items-center gap-1 justify-end">
+                            <span class="text-gray-500 font-medium text-sm">R$</span>
+                            <input type="number" id="budget-input" value="150" onchange="updateBudget()" class="w-24 text-right font-bold text-gray-800 border rounded-lg px-2 py-1 text-sm outline-none">
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div id="budget-bar" class="bg-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-500" id="budget-status">
+                        <span>0%</span>
+                        <span>Restante: R$ 150,00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <h2 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-plus text-blue-600"></i> Adicionar Item
+                </h2>
+                <div class="grid grid-cols-12 gap-2">
+                    <div class="col-span-12 sm:col-span-5 relative">
+                        <input type="text" id="prod-name" placeholder="Produto" class="w-full border rounded-lg pl-3 pr-10 py-2 text-sm outline-none">
+                        <button onclick="quickScanForAdd()" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 p-1">
+                            <i class="fa-solid fa-camera text-base"></i>
+                        </button>
+                    </div>
+                    <div class="col-span-6 sm:col-span-3">
+                        <input type="number" step="0.01" id="prod-price" placeholder="Preço (R$)" class="w-full border rounded-lg px-3 py-2 text-sm outline-none">
+                    </div>
+                    <div class="col-span-3 sm:col-span-2">
+                        <input type="number" id="prod-qty" value="1" min="1" class="w-full border rounded-lg px-3 py-2 text-sm outline-none">
+                    </div>
+                    <div class="col-span-3 sm:col-span-2">
+                        <button onclick="addManualProduct()" class="w-full bg-blue-600 text-white rounded-lg py-2 font-bold hover:bg-blue-700 transition text-sm">Add</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-4 py-3 border-b bg-gray-50 flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-gray-700">Lista (<span id="cart-count">0</span>)</h3>
+                    <button onclick="clearCart()" class="text-xs text-red-600 hover:underline">Limpar</button>
+                </div>
+                <ul id="cart-list" class="divide-y divide-gray-100">
+                    <li class="p-6 text-center text-gray-400 text-sm">Carrinho vazio.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec-scanner" class="space-y-4 hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-4">
+                <div class="text-center">
+                    <h2 class="text-lg font-bold text-gray-800">Scanner de Código de Barras</h2>
+                    <p class="text-xs text-gray-500">Posicione o código de barras no centro do leitor.</p>
+                </div>
+
+                <div class="relative max-w-md mx-auto overflow-hidden rounded-xl border-2 border-blue-500 bg-black min-h-[260px] flex items-center justify-center">
+                    <div id="reader" class="w-full"></div>
+                </div>
+
+                <div class="flex justify-center gap-3">
+                    <button id="btn-start-cam" onclick="startCamera()" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow flex items-center gap-2">
+                        <i class="fa-solid fa-video"></i> Abrir Câmera
+                    </button>
+                    <button id="btn-stop-cam" onclick="stopCamera()" class="bg-gray-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow hidden flex items-center gap-2">
+                        <i class="fa-solid fa-video-slash"></i> Parar
+                    </button>
+                </div>
+
+                <div id="scan-result-card" class="bg-emerald-50 border border-emerald-300 rounded-lg p-3 hidden space-y-2">
+                    <div class="flex items-center gap-2 text-xs text-emerald-800 font-bold uppercase">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+                        <span>Produto lido com sucesso!</span>
+                    </div>
+                    <div id="scan-result-code" class="text-xs text-gray-500 font-mono">--</div>
+                    
+                    <div id="scan-price-form" class="pt-2 border-t border-emerald-200 flex gap-2 items-center">
+                        <input type="text" id="scanned-name-input" placeholder="Nome do produto" class="flex-1 border rounded-lg px-2 py-1.5 text-sm">
+                        <input type="number" step="0.01" id="scanned-price-input" placeholder="R$" class="w-24 border rounded-lg px-2 py-1.5 text-sm">
+                        <button onclick="confirmScannedProduct()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-700">Adicionar</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-config" class="space-y-4 hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-3">
+                <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-file-excel text-emerald-600"></i> Conexão Google Sheets
+                </h2>
+                <p class="text-xs text-gray-500">Cole a URL do Web App do Google Apps Script para sincronizar dados automaticamente.</p>
+                
+                <div>
+                    <label class="text-xs font-bold text-gray-700 block mb-1">URL do Web App (Apps Script)</label>
+                    <input type="text" id="sheets-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full border rounded-lg px-3 py-2 text-sm outline-none">
+                </div>
+                <button onclick="saveSheetsUrl()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-emerald-700">Salvar Conexão</button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        let cart = [];
+        let budget = 150.00;
+        let html5QrcodeScanner = null;
+        let pendingScannedCode = null;
+        let sheetsScriptUrl = localStorage.getItem('mapew_sheets_url') || '';
+
+        document.getElementById('sheets-url').value = sheetsScriptUrl;
+
+        function saveSheetsUrl() {
+            sheetsScriptUrl = document.getElementById('sheets-url').value.trim();
+            localStorage.setItem('mapew_sheets_url', sheetsScriptUrl);
+            alert('URL salva com sucesso!');
+        }
+
+        function switchTab(tab) {
+            ['carrinho', 'scanner', 'config'].forEach(t => {
+                document.getElementById(`sec-${t}`).classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
+                    btn.classList.remove('text-gray-600');
+                } else {
+                    btn.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
+                    btn.classList.add('text-gray-600');
+                }
+            });
+            if (tab !== 'scanner') stopCamera();
+        }
+
+        function updateBudget() {
+            const val = parseFloat(document.getElementById('budget-input').value);
+            budget = isNaN(val) ? 0 : val;
+            renderCart();
+        }
+
+        function addManualProduct() {
+            const name = document.getElementById('prod-name').value.trim();
+            const price = parseFloat(document.getElementById('prod-price').value);
+            const qty = parseInt(document.getElementById('prod-qty').value) || 1;
+
+            if (!name || isNaN(price) || price <= 0) {
+                alert('Informe nome e preço válidos.');
+                return;
+            }
+
+            cart.push({ id: Date.now(), name, price, qty });
+            document.getElementById('prod-name').value = '';
+            document.getElementById('prod-price').value = '';
+            renderCart();
+        }
+
+        function removeProduct(id) {
+            cart = cart.filter(item => item.id !== id);
+            renderCart();
+        }
+
+        function clearCart() {
+            if (cart.length > 0 && confirm('Limpar carrinho?')) {
+                cart = [];
+                renderCart();
+            }
+        }
+
+        function renderCart() {
+            const cartList = document.getElementById('cart-list');
+            const total = cart.reduce((a, b) => a + (b.price * b.qty), 0);
+            const count = cart.reduce((a, b) => a + b.qty, 0);
+
+            document.getElementById('cart-count').innerText = count;
+            document.getElementById('cart-total-display').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+
+            if (cart.length === 0) {
+                cartList.innerHTML = '<li class="p-6 text-center text-gray-400 text-sm">Carrinho vazio.</li>';
+            } else {
+                cartList.innerHTML = cart.map(item => `
+                    <li class="p-3 px-4 flex justify-between items-center hover:bg-gray-50">
+                        <div>
+                            <div class="font-bold text-gray-800 text-sm">${item.name}</div>
+                            <div class="text-xs text-gray-500">${item.qty}x R$ ${item.price.toFixed(2).replace('.', ',')}</div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-extrabold text-gray-900 text-sm">R$ ${(item.price * item.qty).toFixed(2).replace('.', ',')}</span>
+                            <button onclick="removeProduct(${item.id})" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </li>
+                `).join('');
+            }
+
+            const pct = budget > 0 ? Math.min((total / budget) * 100, 100) : 100;
+            const bar = document.getElementById('budget-bar');
+            bar.style.width = `${pct}%`;
+            bar.className = pct >= 100 ? 'bg-red-500 h-full' : (pct > 80 ? 'bg-amber-500 h-full' : 'bg-emerald-500 h-full');
+            document.getElementById('budget-status').innerHTML = `<span>${pct.toFixed(0)}%</span> <span>Restante: R$ ${(budget - total).toFixed(2).replace('.', ',')}</span>`;
+        }
+
+        function startCamera() {
+            document.getElementById('btn-start-cam').classList.add('hidden');
+            document.getElementById('btn-stop-cam').classList.remove('hidden');
+
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            const config = {
+                fps: 15,
+                qrbox: { width: 260, height: 140 },
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.UPC_A
+                ]
+            };
+
+            html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
+                .catch(err => {
+                    alert("Aviso: Certifique-se de estar acessando via HTTPS (GitHub Pages).");
+                    stopCamera();
+                });
+        }
+
+        function stopCamera() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                    document.getElementById('btn-start-cam').classList.remove('hidden');
+                    document.getElementById('btn-stop-cam').classList.add('hidden');
+                }).catch(e => console.error(e));
+            }
+        }
+
+        async function onScanSuccess(decodedText) {
+            pendingScannedCode = decodedText;
+            document.getElementById('scan-result-card').classList.remove('hidden');
+            document.getElementById('scan-result-code').innerText = `Código EAN: ${decodedText}`;
+
+            const nameInput = document.getElementById('scanned-name-input');
+            const priceInput = document.getElementById('scanned-price-input');
+
+            nameInput.value = 'Buscando...';
+            priceInput.value = '';
+
+            if (decodedText.length === 13 && decodedText.startsWith('2')) {
+                const extractedPrice = (parseInt(decodedText.substring(7, 12)) / 100).toFixed(2);
+                nameInput.value = "Produto Peso/Balança";
+                priceInput.value = extractedPrice;
+                return;
+            }
+
+            if (sheetsScriptUrl) {
+                try {
+                    const res = await fetch(`${sheetsScriptUrl}?code=${decodedText}`);
+                    const data = await res.json();
+                    if (data && data.found) {
+                        nameInput.value = data.name;
+                        priceInput.value = data.price;
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Erro ao buscar na planilha', e);
+                }
+            }
+
+            nameInput.value = `Produto (${decodedText})`;
+        }
+
+        async function confirmScannedProduct() {
+            const name = document.getElementById('scanned-name-input').value.trim();
+            const price = parseFloat(document.getElementById('scanned-price-input').value);
+
+            if (!name || isNaN(price) || price <= 0) {
+                alert('Informe nome e preço válidos.');
+                return;
+            }
+
+            cart.push({ id: Date.now(), name, price, qty: 1 });
+            renderCart();
+
+            if (sheetsScriptUrl && pendingScannedCode) {
+                fetch(sheetsScriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: pendingScannedCode, name: name, price: price })
+                });
+            }
+
+            document.getElementById('scan-result-card').classList.add('hidden');
+            pendingScannedCode = null;
+            alert('Item adicionado!');
+        }
+
+        function quickScanForAdd() {
+            switchTab('scanner');
+            startCamera();
+        }
+
+        renderCart();
+    </script>
+</body>
+</html>
