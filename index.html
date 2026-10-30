@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V1.7 - Acompanha Preço (Scanner reduzido e rolagem automática ao ler) -->
+<!-- V1.7.3 - Acompanha Preço (Scanner otimizado e URL oculta/protegida) -->
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -29,7 +29,7 @@
                 <h1 class="text-xl font-bold tracking-wide">Acompanha Preço</h1>
             </div>
             <div class="text-xs bg-blue-700 px-3 py-1.5 rounded-full font-medium">
-                v1.7 - GitHub Pages
+                v1.7.3 - GitHub Pages
             </div>
         </div>
     </header>
@@ -115,7 +115,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-4">
                 <div class="text-center">
                     <h2 class="text-base font-bold text-gray-800">Scanner de Código de Barras</h2>
-                    <p class="text-xs text-gray-500">Aponta a câmera para o código de barras.</p>
+                    <p class="text-xs text-gray-500">Aponte a câmera para o código de barras.</p>
                 </div>
 
                 <div class="relative max-w-xs mx-auto overflow-hidden rounded-xl border-2 border-blue-500 bg-black min-h-[180px] max-h-[200px] flex items-center justify-center">
@@ -126,11 +126,3 @@
                     <button id="btn-start-cam" onclick="startCamera()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow flex items-center gap-2">
                         <i class="fa-solid fa-video"></i> Abrir Câmera
                     </button>
-                    <button id="btn-stop-cam" onclick="stopCamera()" class="bg-gray-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow hidden flex items-center gap-2">
-                        <i class="fa-solid fa-video-slash"></i> Parar Câmera
-                    </button>
-                </div>
-
-                <div id="scan-result-card" class="bg-emerald-50 border border-emerald-300 rounded-xl p-4 hidden space-y-3 shadow-md scroll-mt-6">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-
