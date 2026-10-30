@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V2.0.2 - Acompanha Preço (URL protegida, Correção de salvamento e Leitura flexível Nota PR) -->
+<!-- V2.0.3 - Acompanha Preço (Finalização integrada com redirecionamento para Nota PR) -->
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -29,7 +29,7 @@
                 <h1 class="text-xl font-bold tracking-wide">Acompanha Preço</h1>
             </div>
             <div class="text-xs bg-blue-700 px-3 py-1.5 rounded-full font-medium">
-                v2.0.2 - GitHub Pages
+                v2.0.3 - GitHub Pages
             </div>
         </div>
     </header>
@@ -113,7 +113,7 @@
             </div>
 
             <button onclick="finalizePurchase()" class="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-base hover:bg-emerald-700 transition shadow-md flex items-center justify-center gap-2">
-                <i class="fa-solid fa-check-double"></i> Finalizar Compra
+                <i class="fa-solid fa-check-double"></i> Finalizar Compra e Conferir Nota
             </button>
         </section>
 
@@ -250,7 +250,6 @@
         let qrCodeScanner = null;
         let pendingScannedCode = null;
 
-        // URL do Apps Script dividida e protegida estritamente no código interno
         const _p1 = "https://script.google.com/macros/s/";
         const _p2 = "AKfycbzewgkDdx514vz3fY1M5ssJlxWKjOH24lssYyOVAH7q6yVFg6bC7FECv8hAs4AgV6U64A";
         const _p3 = "/exec";
@@ -313,9 +312,18 @@
                 return;
             }
             const total = cart.reduce((a, b) => a + (b.price * b.qty), 0);
-            alert(`Compra finalizada com sucesso!\nTotal gasto: R$ ${total.toFixed(2).replace('.', ',')}`);
-            cart = [];
-            renderCart();
+            
+            // Pergunta se deseja ir para a conferência da Nota PR com o carrinho atual
+            const confirmNote = confirm(`Compra finalizada! Total: R$ ${total.toFixed(2).replace('.', ',')}\n\nDeseja ir para a aba "Nota PR" para escanear o QR Code e comparar com o carrinho?`);
+            
+            if (confirmNote) {
+                // Muda para a aba Nota PR mantendo o carrinho carregado para o comparativo
+                switchTab('nota');
+            } else {
+                // Apenas limpa o carrinho caso não queira conferir
+                cart = [];
+                renderCart();
+            }
         }
 
         function renderCart() {
@@ -543,6 +551,10 @@
                     });
                     const result = await res.json();
                     renderComparisonResults(result);
+                    
+                    // Limpa o carrinho após a conferência concluída com sucesso
+                    cart = [];
+                    renderCart();
                     return;
                 } catch (e) {
                     console.log('Consultando modo local offline...', e);
@@ -550,6 +562,8 @@
             }
 
             renderLocalComparison();
+            cart = [];
+            renderCart();
         }
 
         function renderComparisonResults(data) {
