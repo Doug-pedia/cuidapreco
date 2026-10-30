@@ -480,11 +480,25 @@
                 if (!qrCodeScanner) {
                     qrCodeScanner = new Html5Qrcode("qr-reader");
                 }
-                const config = { fps: 10, qrbox: { width: 180, height: 180 } };
-                await qrCodeScanner.start({ facingMode: "environment" }, config, onQrScanSuccess);
+                
+                // Configuração otimizada para QR Codes densos de Notas Fiscais
+                const config = { 
+                    fps: 20, 
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                };
+                
+                await qrCodeScanner.start(
+                    { facingMode: "environment" }, 
+                    config, 
+                    onQrScanSuccess,
+                    (errorMessage) => {
+                        // Ignora erros de frame contínuo para não travar o console
+                    }
+                );
             } catch (err) {
                 console.error("Erro ao iniciar câmera de QR:", err);
-                alert("Erro ao acessar a câmera para o QR Code.");
+                alert("Erro ao acessar a câmera. Verifique as permissões do navegador.");
                 stopQrCamera();
             }
         }
