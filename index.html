@@ -447,20 +447,24 @@
             cart.push({ id: Date.now(), name, price, qty, code: pendingScannedCode || '' });
             renderCart();
 
+            // Envio para a planilha usando no-cors para evitar bloqueios do navegador
             if (sheetsScriptUrl && pendingScannedCode) {
-                fetch(sheetsScriptUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: pendingScannedCode, name: name, price: price })
-                });
+                try {
+                    fetch(sheetsScriptUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({ code: pendingScannedCode, name: name, price: price })
+                    });
+                } catch (e) {
+                    console.log('Erro ao enviar para a planilha:', e);
+                }
             }
 
             document.getElementById('scan-result-card').classList.add('hidden');
             pendingScannedCode = null;
             switchTab('carrinho');
         }
-
         function cancelScan() {
             document.getElementById('scan-result-card').classList.add('hidden');
             pendingScannedCode = null;
